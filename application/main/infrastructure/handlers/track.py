@@ -2,6 +2,7 @@
 
 import os
 import warnings
+
 os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 os.environ["OMP_NUM_THREADS"] = "1"
 os.environ["OPENBLAS_NUM_THREADS"] = "1"
@@ -17,7 +18,7 @@ sys.path.append(lib_path)
 from infrastructure.yolov5.models.experimental import attempt_load
 from infrastructure.yolov5.utils.downloads import attempt_download
 from infrastructure.yolov5.models.common import DetectMultiBackend
-from infrastructure.yolov5.utils.datasets import LoadImages, LoadStreams
+from infrastructure.yolov5.utils.datasets import LoadImages, LoadStreams, LoadWebcam
 from infrastructure.yolov5.utils.general import LOGGER, check_img_size, increment_path, non_max_suppression, scale_coords, check_imshow, xyxy2xywh, increment_path
 from infrastructure.yolov5.utils.torch_utils import select_device, time_sync
 from infrastructure.yolov5.utils.plots import Annotator, colors
@@ -115,10 +116,11 @@ class Tracker:
 
         # Dataloader
         if webcam:
-            show_vid = check_imshow()
+            view_image = check_imshow()
             cudnn.benchmark = True  # set True to speed up constant image size inference
             dataset = LoadStreams(source, img_size=imgsz, stride=stride, auto=pt and not jit)
             bs = len(dataset)  # batch_size
+            print(len(dataset))
         else:
             dataset = LoadImages(source, img_size=imgsz, stride=stride, auto=pt and not jit)
             bs = 1  # batch_size
@@ -147,6 +149,9 @@ class Tracker:
         
 
         for frame_idx, (path, img, im0s, vid_cap, s) in enumerate(dataset):
+            # if not isinstance(im0s, np.ndarray):
+            #     im0s = np.array(im0s)
+            print(type(im0s))
             t1 = time_sync()
             img = torch.from_numpy(img).to(device)
             img = img.half() if half else img.float()  # uint8 to fp16/32
