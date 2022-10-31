@@ -115,7 +115,7 @@ class Tracker:
 
         # Dataloader
         if webcam:
-            view_img = check_imshow()
+            show_vid = check_imshow()
             cudnn.benchmark = True  # set True to speed up constant image size inference
             dataset = LoadStreams(source, img_size=imgsz, stride=stride, auto=pt and not jit)
             bs = len(dataset)  # batch_size
