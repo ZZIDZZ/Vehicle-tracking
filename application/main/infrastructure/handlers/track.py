@@ -117,7 +117,7 @@ class Tracker:
         if webcam:
             show_vid = check_imshow()
             cudnn.benchmark = True  # set True to speed up constant image size inference
-            dataset = LoadStreams(source, img_size=imgsz, stride=stride, auto=pt and not jit)
+            dataset = LoadStreams(source, img_size=imgsz, stride=stride, auto=pt, vid_stride=1)
             bs = len(dataset)  # batch_size
         else:
             dataset = LoadImages(source, img_size=imgsz, stride=stride, auto=pt and not jit)
@@ -146,25 +146,26 @@ class Tracker:
         list_vehicles = set()  #LIST CONTAIN vehicles HAS APPEARED, IF THAT VEHICLE HAD BEEN UPLOADED TO DB, REMOVE THAT VEHICLE
         
 
-        for frame_idx, (path, img, im0s, vid_cap, s) in enumerate(dataset):
+        for frame_idx, (path, im, im0s, vid_cap, s) in enumerate(dataset):
             t1 = time_sync()
-            img = torch.from_numpy(img).to(device)
-            img = img.half() if half else img.float()  # uint8 to fp16/32
-            img /= 255.0  # 0 - 255 to 0.0 - 1.0
-            frame_height = im0s.shape[0]
-            frame_width = im0s.shape[1]
+            im = torch.from_numpy(im).to(device)
+            im = im.half() if half else im.float()  # uint8 to fp16/32
+            im /= 255.0  # 0 - 255 to 0.0 - 1.0
+            print(type(path), type(im), type(im0s), type(vid_cap), type(s))
+            frame_height = im0s[frame_idx].shape[0]
+            frame_width = im0s[frame_idx].shape[1]
             upper_line = int(frame_height*upper_ratio)
             lower_line = int(frame_height*lower_ratio)
             middle_line = frame_width//2
 
-            if img.ndimension() == 3:
-                img = img.unsqueeze(0)
+            if im.ndimension() == 3:
+                im = im.unsqueeze(0)
             t2 = time_sync()
             dt[0] += t2 - t1
 
             # Inference
             visualize = increment_path(save_path / Path(path).stem, mkdir=True) if opt.visualize else False
-            pred = model(img, augment=opt.augment, visualize=visualize)
+            pred = model(im, augment=opt.augment, visualize=visualize)
             t3 = time_sync()
             dt[1] += t3 - t2
 
@@ -181,7 +182,7 @@ class Tracker:
                 else:
                     p, im0, frame = path, im0s.copy(), getattr(dataset, 'frame', 0)
 
-                # s += '%gx%g ' % img.shape[2:]  # print string
+                # s += '%gx%g ' % im.shape[2:]  # print string
                 save_path = str(Path(out) / Path(p).name)
 
                 annotator = Annotator(im0, line_width=2, pil=not ascii)
@@ -190,9 +191,9 @@ class Tracker:
                 zone_drawer.draw(im0, frame_width=frame_width, frame_height=frame_height, upper_ratio=upper_ratio, lower_ratio=lower_ratio)
 
                 if det is not None and len(det):
-                    # Rescale boxes from img_size to im0 size
+                    # Rescale boxes from im_size to im0 size
                     det[:, :4] = scale_coords(
-                        img.shape[2:], det[:, :4], im0.shape).round()
+                        im.shape[2:], det[:, :4], im0.shape).round()
 
                     # Print results
                     # for c in det[:, -1].unique():

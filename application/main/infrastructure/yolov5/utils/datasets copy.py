@@ -15,7 +15,7 @@ from multiprocessing.pool import Pool, ThreadPool
 from pathlib import Path
 from threading import Thread
 from zipfile import ZipFile
-import math
+
 import cv2
 import numpy as np
 import torch
@@ -295,11 +295,14 @@ class LoadStreams:
         for i, s in enumerate(sources):  # index, source
             # Start thread to read frames from video stream
             st = f'{i + 1}/{n}: {s}... '
-            if 'youtube.com/' in s or 'youtu.be/' in s:  # if source is YouTube video
+            if urlparse(s).hostname in ('www.youtube.com', 'youtube.com', 'youtu.be'):  # if source is YouTube video
                 check_requirements(('pafy', 'youtube_dl==2020.12.2'))
                 import pafy
                 s = pafy.new(s).getbest(preftype="mp4").url  # YouTube URL
             s = eval(s) if s.isnumeric() else s  # i.e. s = '0' local webcam
+            if s == 0:
+                assert not is_colab(), '--source 0 webcam unsupported on Colab. Rerun command in a local environment.'
+                assert not is_kaggle(), '--source 0 webcam unsupported on Kaggle. Rerun command in a local environment.'
             cap = cv2.VideoCapture(s)
             assert cap.isOpened(), f'{st}Failed to open {s}'
             w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
@@ -308,8 +311,7 @@ class LoadStreams:
             self.frames[i] = max(int(cap.get(cv2.CAP_PROP_FRAME_COUNT)), 0) or float('inf')  # infinite stream fallback
             self.fps[i] = max((fps if math.isfinite(fps) else 0) % 100, 0) or 30  # 30 FPS fallback
 
-            _, self.imgs[i] = cap.read()
-            print("asd", type(self.imgs[i]))  # guarantee first frame
+            _, self.imgs[i] = cap.read()  # guarantee first frame
             self.threads[i] = Thread(target=self.update, args=([i, cap, s]), daemon=True)
             LOGGER.info(f"{st} Success ({self.frames[i]} frames {w}x{h} at {self.fps[i]:.2f} FPS)")
             self.threads[i].start()
@@ -333,9 +335,6 @@ class LoadStreams:
                 success, im = cap.retrieve()
                 if success:
                     self.imgs[i] = im
-                    print("im", type(im))
-                    print("imgs", type(self.imgs[i]))
-
                 else:
                     LOGGER.warning('WARNING ⚠️ Video stream unresponsive, please check your IP camera connection.')
                     self.imgs[i] = np.zeros_like(self.imgs[i])
@@ -353,8 +352,6 @@ class LoadStreams:
             raise StopIteration
 
         im0 = self.imgs.copy()
-        print("asdimgs", type(self.imgs))
-        print("asdim0", type(im0))
         if self.transforms:
             im = np.stack([self.transforms(x) for x in im0])  # transforms
         else:
