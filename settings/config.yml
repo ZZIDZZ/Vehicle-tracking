@@ -21,15 +21,15 @@ visualize: false
 
 #in-out
 fourcc: mp4v
-source: ../../videos/cut3.avi
+source: '0'
 output: inference/output
 save_csv: false
 save_txt: false
 save_vid: true
-show_vid: false
+show_vid: true
 
 #lines zones
-upper_ratio: 0.4
+upper_ratio: 0.2
 lower_ratio: 0.9231
 
 #DB

@@ -333,8 +333,8 @@ class LoadStreams:
                 success, im = cap.retrieve()
                 if success:
                     self.imgs[i] = im
-                    print("im", type(im))
-                    print("imgs", type(self.imgs[i]))
+                    # print("im", type(im))
+                    # print("imgs", type(self.imgs[i]))
 
                 else:
                     LOGGER.warning('WARNING ⚠️ Video stream unresponsive, please check your IP camera connection.')

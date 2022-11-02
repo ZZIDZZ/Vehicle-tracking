@@ -154,8 +154,8 @@ class Tracker:
             im = im.half() if half else im.float()  # uint8 to fp16/32
             im /= 255.0  # 0 - 255 to 0.0 - 1.0
             print(type(path), type(im), type(im0s), type(vid_cap), type(s))
-            frame_height = im0s[frame_idx].shape[0]
-            frame_width = im0s[frame_idx].shape[1]
+            frame_height = im0s[-1].shape[0]
+            frame_width = im0s[-1].shape[1]
             upper_line = int(frame_height*upper_ratio)
             lower_line = int(frame_height*lower_ratio)
             middle_line = frame_width//2

@@ -33,5 +33,5 @@ class ZoneDrawerHelper():
         im0[y:y1, x:x1] = cv2.addWeighted(overlay, alpha, zone, 1 - alpha, 0)
 
         #draw line for split LANE
-        cv2.line(im0, (frame_width//2, 0), (frame_width//2, frame_height), (38,41,175), thickness=4)
+        # cv2.line(im0, (frame_width//2, 0), (frame_width//2, frame_height), (38,41,175), thickness=4)
 
