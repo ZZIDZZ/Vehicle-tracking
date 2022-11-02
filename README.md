@@ -1,7 +1,7 @@
 # Vehicle tracking with Yolov5 + Deep Sort with PyTorch
 
 <p>
-<img src="videos/example3.gif" width="500"/>
+<img src="example3.gif" width="500"/>
 </p>
 
 Full result video [HERE](https://youtu.be/TCc3Agqb8Tg)
@@ -44,7 +44,17 @@ uvicorn app_API:app --host 0.0.0.0 --port 8000 --reload
 
 ```
 <p>
-<img src="videos/fastapi.PNG" width="500"/>
+- [x] fix webcam bug (object list does not have shape error)
+- [ ] add user interface
+- [ ] remove video caching, update per frame
+- [ ] local storage database solution
+- [ ] refactor image view (only unused area)
+- [ ] improve performances
+- [ ] (opt) size, structure optimizations
+
+</p>
+<p>
+<img src="fastapi.PNG" width="500"/>
 </p>
 
 
