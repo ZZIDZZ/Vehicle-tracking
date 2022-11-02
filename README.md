@@ -43,7 +43,7 @@ cd application\main
 uvicorn app_API:app --host 0.0.0.0 --port 8000 --reload
 
 ```
-<p>
+
 - [x] fix webcam bug (object list does not have shape error)
 - [ ] add user interface
 - [ ] remove video caching, update per frame
@@ -52,7 +52,6 @@ uvicorn app_API:app --host 0.0.0.0 --port 8000 --reload
 - [ ] improve performances
 - [ ] (opt) size, structure optimizations
 
-</p>
 <p>
 <img src="fastapi.PNG" width="500"/>
 </p>
