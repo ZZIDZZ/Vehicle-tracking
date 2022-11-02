@@ -1,3 +1,4 @@
 # Folders
 videos/
 __pycache__/
+settings/db_config.yml
