@@ -61,6 +61,8 @@ class Tracker:
         self.opt = OPT(config=config)
 
         self.opt.imgsz *= 2 if len(self.opt.imgsz) == 1 else 1  # expand
+        self.prev_frame_time = 0
+        self.new_frame_time = 0
 
         
     def detect(self):
@@ -120,7 +122,6 @@ class Tracker:
             cudnn.benchmark = True  # set True to speed up constant image size inference
             dataset = LoadStreams(source, img_size=imgsz, stride=stride, auto=pt, vid_stride=1)
             bs = len(dataset)  # batch_size
-            print(len(dataset))
         else:
             dataset = LoadImages(source, img_size=imgsz, stride=stride, auto=pt and not jit)
             bs = 1  # batch_size
@@ -129,7 +130,6 @@ class Tracker:
 
         # Get names and colors
         names = model.module.names if hasattr(model, 'module') else model.names
-
         save_path = str(Path(out))
         # extract what is in between the last '/' and last '.'
         txt_file_name = source.split('/')[-1].split('.')[0]
@@ -153,7 +153,7 @@ class Tracker:
             im = torch.from_numpy(im).to(device)
             im = im.half() if half else im.float()  # uint8 to fp16/32
             im /= 255.0  # 0 - 255 to 0.0 - 1.0
-            print(type(path), type(im), type(im0s), type(vid_cap), type(s))
+            # print(type(path), type(im), type(im0s), type(vid_cap), type(s))
             frame_height = im0s[-1].shape[0]
             frame_width = im0s[-1].shape[1]
             upper_line = int(frame_height*upper_ratio)
@@ -183,6 +183,18 @@ class Tracker:
                     # s += f'{i}: '
                 else:
                     p, im0, frame = path, im0s.copy(), getattr(dataset, 'frame', 0)
+                self.new_frame_time = time.time()
+
+                # Calculating the fps
+
+                # fps will be number of frame processed in given time frame
+                # since their will be most of time error of 0.001 second
+                # we will be subtracting it to get more accurate result
+                fpsi = 1/(self.new_frame_time-self.prev_frame_time)
+                self.prev_frame_time = self.new_frame_time
+
+                # converting the fpsi into integer
+                fpsi = int(fpsi)
 
                 # s += '%gx%g ' % im.shape[2:]  # print string
                 save_path = str(Path(out) / Path(p).name)
@@ -232,6 +244,7 @@ class Tracker:
                     current_frame['frame'] = frame_idx
                     current_frame['n_vehicles_at_time'] = len(outputs)    
                     current_frame['IDs_vehicles'] = []                    
+                    # print(current_frame['IDs_vehicles'])
                    
                     if len(outputs)>0:
                         current_frame['IDs_vehicles'] = list(outputs[:, 4])
@@ -251,7 +264,7 @@ class Tracker:
                                 vehicle_infos[ID]['lane'] = 'lane'                     
                                 vehicle_infos[ID]['temporarily_disappear'] = 0
 
-                                
+                        print(list_vehicles)
                         # for ID in previous_IDs:
                         for ID in copy.deepcopy(list_vehicles):
                             if (ID not in current_IDs):
@@ -312,6 +325,7 @@ class Tracker:
                 # Stream results
                 im0 = annotator.result()
                 if show_vid:
+                    cv2.putText(im0, str(fpsi), (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, 255, 2)
                     cv2.imshow(p, im0)
                     if cv2.waitKey(1) == ord('q'):  # q to quit
                         raise StopIteration

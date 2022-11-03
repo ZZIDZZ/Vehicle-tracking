@@ -309,7 +309,7 @@ class LoadStreams:
             self.fps[i] = max((fps if math.isfinite(fps) else 0) % 100, 0) or 30  # 30 FPS fallback
 
             _, self.imgs[i] = cap.read()
-            print("asd", type(self.imgs[i]))  # guarantee first frame
+            # print("asd", type(self.imgs[i]))  # guarantee first frame
             self.threads[i] = Thread(target=self.update, args=([i, cap, s]), daemon=True)
             LOGGER.info(f"{st} Success ({self.frames[i]} frames {w}x{h} at {self.fps[i]:.2f} FPS)")
             self.threads[i].start()
@@ -353,8 +353,8 @@ class LoadStreams:
             raise StopIteration
 
         im0 = self.imgs.copy()
-        print("asdimgs", type(self.imgs))
-        print("asdim0", type(im0))
+        # print("asdimgs", type(self.imgs))
+        # print("asdim0", type(im0))
         if self.transforms:
             im = np.stack([self.transforms(x) for x in im0])  # transforms
         else:
